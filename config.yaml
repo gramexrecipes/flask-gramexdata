@@ -1,0 +1,24 @@
+data:
+  flags: $YAMLPATH/flags.csv
+  flags_sql: sqlite:///$YAMLPATH/flags.sqlite3
+  # connections
+
+formats:
+  json:
+    headers:
+      Content-Type: application/json
+  csv:
+    headers:
+      Content-Type: text/csv;charset=UTF-8
+      Content-Disposition: attachment;filename=data.csv
+  html:
+    headers:
+      Content-Type: text/html;charset=UTF-8
+  xlsx:
+    headers:
+      Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      Content-Disposition: attachment;filename=data.xlsx
+  pptx:
+    headers:
+      Content-Type: application/vnd.openxmlformats-officedocument.presentationml.presentation
+      Content-Disposition: attachment;filename=download.pptx

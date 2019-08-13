@@ -1,0 +1,87 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="{{ url_for('.static', filename='style.css') }}">
+  </head>
+  <body>
+    <h1>Using gramex.data to read data from files, databases</h1>
+
+    <h2>Filters</h2>
+    <p>The URL supports operators for filtering rows. The operators can be combined.</p>
+    <ul>
+      <li><a href="flags?Continent=Europe&_format=html">?Continent=Europe</a> ► Continent = Europe</li>
+      <li><a href="flags?Continent=Europe&Continent=Asia&_format=html">?Continent=Europe&Continent=Asia</a> ► Continent = Europe OR Asia. Multiple values are allowed</li>
+      <li><a href="flags?Continent!=Europe&_format=html">?Continent!=Europe</a> ► Continent is NOT Europe</li>
+      <li><a href="flags?Continent!=Europe&Continent!=Asia&_format=html">?Continent!=Europe&Continent!=Asia</a> ► Continent is NEITHER Europe NOR Asia</li>
+      <li><a href="flags?Shapes&_format=html">?Shapes</a> ► Shapes is not NULL</li>
+      <li><a href="flags?Shapes!&_format=html">?Shapes!</a> ► Shapes is NULL</li>
+      <li><a href="flags?c1>=10&_format=html">?c1>=10</a> ► c1 > 10 (not >= 10)</li>
+      <li><a href="flags?c1>~=10&_format=html">?c1>~=10</a> ► c1 >= 10. The <code>~</code> acts like an <code>=</code></li>
+      <li><a href="flags?c1<=10&_format=html">?c1<=10</a> ► c1 < 10 (not <= 10)</li>
+      <li><a href="flags?c1<~=10&_format=html">?c1<~=10</a> ► c1 <= 10. The <code>~</code> acts like an <code>=</code></li>
+      <li><a href="flags?c1>=10&c1<=20&_format=html">?c1>=10&c1<=20</a> ► c1 > 10 AND c1 < 20</li>
+      <li><a href="flags?Name~=United&_format=html">?Name~=United</a> ► Name matches &_format=html</li>
+      <li><a href="flags?Name!~=United&_format=html">?Name!~=United</a> ► Name does NOT match United</li>
+      <li><a href="flags?Name~=United&Continent=Asia&_format=html">?Name~=United&Continent=Asia</a> ► Name matches United AND Continent is Asia</li>
+    </ul>
+
+    <p>To control the output, you can use these control arguments:</p>
+
+    <ul>
+      <li>Limit rows: <a href="flags?_limit=10&_format=html">?_limit=10</a> ► show only 10 rows</li>
+      <li>Offset rows: <a href="flags?_offset=10&_limit=10&_format=html">?_offset=10&_limit=10</a> ► show only 10 rows starting, skipping the first 10 rows</li>
+      <li>Sort by columns: <a href="flags?_sort=Continent&_sort=Name&_format=html">?_sort=Continent&_sort=Name</a> ► sort first by Continent (ascending) then Name (ascending)</li>
+      <li>Sort order: <a href="flags?_sort=-Continent&_sort=-ID&_format=html">?_sort=-Continent&_sort=-ID</a> ► sort first by Continent (descending) then ID (descending)</li>
+      <li>Specific columns: <a href="flags?_c=Continent&_c=Name&_format=html">?_c=Continent&_c=Name</a> ► show only the Continent and Names columns</li>
+      <li>Exclude columns: <a href="flags?_c=-Continent&_c=-Name&_format=html">?_c=-Continent&_c=-Name</a> ► show all columns except the Continent and Names columns</li>
+    </ul>
+
+    <h2>GroupBy</h2>
+
+    <p>The URL supports grouping by columns using <code>?_by=col</code>. For example:</p>
+    <ul>
+      <li><a href="flags?_by=Continent&_format=html">?_by=Continent</a>: group by Continent, and sum all numeric columns.
+      </li>
+      <li><a href="flags?_by=Text&_format=html">?_by=Text</a>: group by Text, and sum all numeric columns.
+      </li>
+      <li><a href="flags?_by=Text&_by=Symbols&_format=html">?_by=Text&_by=Symbols</a>: group by Text <em>and</em> by Symbols.
+      </li>
+    </ul>
+    
+    <p>You can specify custom aggregations using <code>?_c=col|aggregation</code>. For example:</p>
+    
+    <ul>
+      <li><a href="flags?_by=Continent&_c=Name|count&_format=html">?_by=Continent&_c=Name|count</a>: group by Continent, count names of countries</li>
+      <li>
+        <a href="flags?_by=Continent&_c=Name|count&_c=c1|min&_c=c1|avg&_c=c1|max&_format=html">?_by=Continent&_c=Name|count&_c=c1|min&_c=c1|avg&_c=c1|max</a>
+        <ul>
+          <li><code>_by=Continent</code>: group by &ldquo;Continent&rdquo;</li>
+          <li><code>_c=Name|count</code>: count values in &ldquo;Name&rdquo;</li>
+          <li><code>_c=c1|min</code>: min value of &ldquo;c1&rdquo; in each continent</li>
+          <li><code>_c=c1|avg</code>: mean value of &ldquo;c1&rdquo; in each continent</li>
+          <li><code>_c=c1|max</code>: max value of &ldquo;c1&rdquo; in each continent</li>
+        </ul>
+      </li>
+    </ul>
+    
+    <p>You can also aggregate on entire column using empty <code>?by=</code>. For example:</p>
+    
+    <ul>
+      <li><a href="flags?_by=&_c=c1|avg&_c=c2|count">_by=&_c=c1|avg&_c=c2|count</a></li>
+    </ul>
+    
+    <p>Filters on columns apply BEFORE the grouping. For example:</p>
+    <ul>
+      <li><a href="flags?c1>=80&_by=Continent&_c=Name|count&_format=html">?c1>=80&_by=Continent&_c=Name|count</a>: count of countries by continent where c1 > 80</li>
+    </ul>
+    
+    <p>You can also filter AFTER the grouping by filtering with the derived column names. For example:</p>
+    <ul>
+      <li><a href="flags?_by=Continent&_c=Name|count&Name|count>=30&_format=html">?_by=Continent&_c=Name|count&Name|count>=30</a>: count of countries by continent where count of countries is > 30</li>
+    </ul>
+    
+    <p>Sorting (<code>?_sort=</code>) and pagination (<code>?_limit=</code> and <code>?_offset=</code>) apply <em>after</em> the group by.</p>
+    <ul>
+      <li><a href="flags?_by=Continent&_sort=Continent&_offset=2&_limit=2&_format=html">?_by=Continent&_sort=Continent&_offset=2&_limit=2</a>: count of countries by continent sorted by Continent, 2 per page</li>
+    </ul>
+  </body>
+</html>
